@@ -16,3 +16,5 @@ source/*.spec~
 .env.*
 !.env.example
 *settings.local.json
+
+/pip-temp/

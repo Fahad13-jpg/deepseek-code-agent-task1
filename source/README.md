@@ -2,6 +2,8 @@
 
 A native Windows desktop application that turns architectural documentation and PlantUML views into a source-code project using the **official DeepSeek V4 Pro API**. It implements the code agent required by `Task1-EN.docx`. The supplied Space Fractions documents are example inputs to the agent.
 
+> **Update note:** The source default token budget is now 1,000,000. The bundled `DeepSeekCodeAgent.exe` has not been rebuilt in this update and still uses the original 500,000-token default. To use the higher limit, rebuild the executable from `source/` on Windows using the instructions below.
+
 ## Run the desktop application
 
 1. Double-click **DeepSeekCodeAgent.exe** in the submission folder. No Python installation, terminal, web browser, or local model download is needed.
@@ -56,7 +58,7 @@ Generated tests run with the Windows user's permissions and are **not sandboxed*
 
 The key is held in memory by default. **Remember on this PC** encrypts it with Windows DPAPI under the current Windows user's account. Preferences live in `%LOCALAPPDATA%\DeepSeekCodeAgent\settings.json`. Uncheck Remember and close the app to remove the stored key. API keys are not put into prompts; exact-key redaction also protects stored logs. DeepSeek reasoning is retained in memory for correct tool-call replay but is not shown in the GUI or saved in the transcript.
 
-Limits: 512 KB per input, 256 KB per generated file, 300 project files, 12 MB project contents, 700,000 conversation characters, and 5–120 model turns (50 by default). A 500,000 accumulated-token budget is checked between requests, so the final request can exceed it. Token counts use API usage reports and are not a currency spending cap. Maximum response size is 8 MB. Each request permits up to 16,384 generated tokens.
+Limits: 512 KB per input, 256 KB per generated file, 300 project files, 12 MB project contents, 700,000 conversation characters, and 5–120 model turns (50 by default). A 1,000,000 accumulated-token budget is checked between requests, so the final request can exceed it. Token counts use API usage reports and are not a currency spending cap. Maximum response size is 8 MB. Each request permits up to 16,384 generated tokens.
 
 Stop is cooperative. It stops before the next tool action and checks each streamed line; a stalled network read can take up to 60 seconds to time out. Closing the window during a run requests cancellation and closes when the worker finishes. Saved conversations are audit records, not resumable sessions. Start a fresh run after an interrupted request.
 
@@ -110,3 +112,5 @@ licenses/                  Third-party license notices
 ```
 
 This project is an independent implementation. It is not an Anthropic or DeepSeek product. See `THIRD_PARTY_NOTICES.md` for dependency and reference information.
+
+
