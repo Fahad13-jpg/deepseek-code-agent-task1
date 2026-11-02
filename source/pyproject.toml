@@ -1,0 +1,11 @@
+[project]
+name = "deepseek-code-agent"
+version = "1.0.1"
+description = "Native Windows architecture-to-code agent using the official DeepSeek V4 Pro API"
+requires-python = ">=3.12"
+dependencies = ["PySide6-Essentials==6.12.0", "httpx==0.28.1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"

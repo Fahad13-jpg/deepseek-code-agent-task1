@@ -1,0 +1,17 @@
+{
+  "application_version": "1.0.1",
+  "verified_on": "2026-10-29",
+  "platform": "Windows 11 x64",
+  "automated_tests_passed": 55,
+  "packaged_self_test_passed": true,
+  "packaged_fixture_unittest_cases": 3,
+  "packaged_clean_PATH_test_passed": true,
+  "live_DeepSeek_generation": "not run; authenticated GUI connection remains to be checked",
+  "exe_sha256": "ec82d0b775124ce688b78cbb38b98fc694601ed6a597bf07654a0dcdbc33601d",
+  "exe_bytes": 48714475,
+  "packaged_tls_transport_initialized": true,
+  "official_https_diagnostic_status": 401,
+  "archive_entries_checked": 193,
+  "python_modules_checked": 350,
+  "release_folder": "Task1-Desktop-Submission-v1.0.1"
+}

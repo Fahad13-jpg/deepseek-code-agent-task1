@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Build output
+source/build/
+source/dist/
+source/*.build/
+source/*.spec~
+
+# Local secrets and settings
+.env
+.env.*
+!.env.example
+*settings.local.json
