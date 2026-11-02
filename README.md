@@ -4,8 +4,6 @@ A Windows desktop application that uses architecture documentation and UML/Plant
 
 > This repository contains the code-generation application. The included Space Fractions documents are example inputs; the application is not itself the Space Fractions game.
 
-> **Update note:** The source default token budget is now 1,000,000. The bundled `DeepSeekCodeAgent.exe` has not been rebuilt in this update and still uses the original 500,000-token default. To use the higher limit, rebuild the executable from `source/` on Windows using the instructions below.
-
 ## Run the Windows application
 
 Download or clone this repository on Windows x64, then double-click `DeepSeekCodeAgent.exe` in the repository folder. No separate Python installation is required to run the packaged app.
@@ -51,4 +49,3 @@ The included verification record reports 55 automated tests passed and a package
 - `references/Task1-EN.docx` — original assignment brief.
 
 See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) and `licenses/` for notices.
-

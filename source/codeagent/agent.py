@@ -47,7 +47,7 @@ class RunConfig:
     name: str = "generated-project"
     instructions: str = ""
     max_turns: int = 50
-    token_budget: int = 1_000_000
+    token_budget: int = 500_000
     execute_tests: bool = False
 
 
@@ -191,4 +191,3 @@ class Agent:
         # for API replay, but is never exposed in the GUI or persisted to disk.
         public = [{k: v for k, v in m.items() if k != "reasoning_content"} for m in self.messages]
         atomic_text(self.workspace.root / ".agent" / "conversation.json", self.redact(json.dumps(public, indent=2, ensure_ascii=False)))
-

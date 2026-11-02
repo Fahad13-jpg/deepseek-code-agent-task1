@@ -511,7 +511,7 @@ class MainWindow(QMainWindow):
             "Generated source is written into a new project folder. Supported static checks run automatically. "
             "Optional Python unittest execution uses the bundled runtime and runs with your user permissions. "
             "Other languages require their own runtime to run the generated project.\n\n"
-            "Limits: 1,000,000 accumulated tokens (checked between calls), 300 files, 256 KB per file, "
+            "Limits: 500,000 accumulated tokens (checked between calls), 300 files, 256 KB per file, "
             "12 MB per project. Stop preserves partial output; API cancellation may take up to 60 seconds.\n\n"
             "See README.md and docs/REFERENCE_RESEARCH.md in the source package for implementation and research notes.")
 
@@ -535,4 +535,3 @@ def main():
     window = MainWindow()
     window.show()
     return app.exec()
-
