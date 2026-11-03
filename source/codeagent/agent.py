@@ -19,7 +19,7 @@ First state a brief implementation plan, then use file tools to build the projec
 Preserve specified components, public interfaces, data ownership and workflows. For contradictions or missing requirements, choose a practical explicit assumption and document it in README.md. Do not invent missing stakeholder decisions or claim production readiness. Provide a runnable local development path; if full cloud services are specified, implement those services and a sensible local configuration, not empty stubs.
 Required outputs: full source files, a root README.md with setup/run/test commands, a dependency manifest, meaningful test cases. Include configuration examples, no real secrets. Dockerfile is optional. Document the directory structure, requirements-to-code mapping, assumptions and known limitations.
 When the requested deliverable is a game, implement the playable game and its user interface, not only architecture documents, plans, mockups, or placeholder files. If the user requests a desktop game, create a local desktop application with working controls, gameplay, scoring or feedback, and a restart path; do not substitute a web page. Prefer a self-contained Python Tkinter implementation when no stack is required, and create a clear main.py entry point and README run command. Include tests for the core game rules and a short manual smoke-test checklist. Keep required files complete and consistent with each other.
-All paths are relative to the new project. Keep files small and complete. Use write_file to create and replace_text to repair. Tools return errors as observations: correct them and retry. Prefer batches of several related file writes, but never issue partial file content. Do not create .agent metadata yourself.
+All paths are relative to the new project. Keep files small and complete. Use write_file to create and replace_text to repair. Tools return errors as observations: correct them and retry. Do not issue more than two write_file or replace_text calls in one response. Build the project in small steps: first create the smallest runnable core, then add tests and documentation in later responses. Keep the plan to three sentences or fewer. Never try to output the entire project in one response, and never issue partial file content. Do not create .agent metadata yourself.
 Call check_project, inspect all reported issues, and repair them before your final response. If Python unittest is enabled, use run_python_tests for Python projects and repair failures. Do not claim tests passed unless the tool actually reports a pass. Tests in other languages must have runnable instructions and be described as not executed here. Static checks do not verify behavior.
 When done, give a short factual summary, run instructions, and validation limitations. Do not stop after a plan. You have a limited number of model turns; spend them on implementation and verification.
 """
@@ -129,9 +129,18 @@ class Agent:
                     summary = "Conversation size limit reached. Partial files are preserved."
                     break
                 self.event("turn", f"Model turn {self.turn} / {self.config.max_turns}", turn=self.turn)
-                reply = self.client.complete(self.messages, TOOLS,
-                    on_text=lambda text: self.event("delta", text),
-                    on_retry=lambda text: self.event("retry", text))
+                for response_attempt in range(3):
+                    try:
+                        reply = self.client.complete(self.messages, TOOLS,
+                            on_text=lambda text: self.event("delta", text),
+                            on_retry=lambda text: self.event("retry", text))
+                        break
+                    except Exception as exc:
+                        error_text = str(exc).lower()
+                        if not ("hit its" in error_text and "token limit" in error_text) or response_attempt == 2:
+                            raise
+                        self.event("retry", "The model response was too large. Retrying with a smaller file batch; no partial tool calls from the oversized response were applied.")
+                        self.messages.append({"role": "user", "content": "Your last response exceeded the output limit, and none of its tool calls were executed. Continue the same full project task without dropping requirements. Keep this response concise and make at most one write_file or replace_text call now; continue the remaining files in later responses."})
                 if self.cancel.is_set():
                     raise Cancelled()
                 self.messages.append(reply.message)

@@ -1,8 +1,8 @@
 # DeepSeek Code Agent — Task 1
 
-A Windows desktop application that uses architecture documentation and UML/PlantUML views as input to a tool-using code agent. It sends requests to DeepSeek using the `deepseek-v4-pro` model identifier and writes generated projects into a user-selected output folder.
+A Windows desktop application that uses architecture documentation and UML/PlantUML views as input to a tool-using code agent. It sends requests to DeepSeek using the `deepseek-v4-pro` model identifier and writes generated projects into a user-selected output folder. This repository also includes the generated Space Fractions desktop game under [`generated/space-fractions/`](generated/space-fractions/).
 
-> This repository contains the code-generation application. The included Space Fractions documents are example inputs; the application is not itself the Space Fractions game.
+The Space Fractions source is a sample output from the agent. The bundled app can run without Python; the generated Python game has its own runtime requirements described below.
 
 ## Run the Windows application
 
@@ -15,6 +15,17 @@ Download or clone this repository on Windows x64, then double-click `DeepSeekCod
 5. Review the generated files and report before using the generated software.
 
 API usage is billed to the account associated with the key. The app reports token usage, but its token budget is not a dollar spending cap. Check current DeepSeek pricing and account limits before generation. The app requests the `deepseek-v4-pro` model identifier; provider routing and pricing policies may change.
+
+## Run the generated game
+
+The sample game is a native Tkinter desktop app in `generated/space-fractions/`. It needs Python 3.10+ with Tkinter installed. From that folder, run:
+
+```powershell
+py -3.12 main.py
+py -3.12 -m unittest discover -s tests -v
+```
+
+The generated game's 17 unit tests pass. Its equivalent-fraction answer handling was corrected after generation.
 
 ## Source and development
 
@@ -46,6 +57,7 @@ The included verification record reports 55 automated tests passed and a package
 - `source/tests/` — automated tests for the application.
 - `source/examples/` — supplied architecture and UML example inputs.
 - `source/docs/` — research, input review, requirement traceability, and verification.
+- `generated/space-fractions/` — generated sample game source, tests, and run guide.
 - `references/Task1-EN.docx` — original assignment brief.
 
 See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) and `licenses/` for notices.

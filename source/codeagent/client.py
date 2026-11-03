@@ -69,7 +69,7 @@ class DeepSeekClient:
             raise APIError("Could not connect to the official DeepSeek API. Check your connection.") from exc
 
     def complete(self, messages: list[dict], tools: list[dict], on_text: Callable[[str], None] = lambda _: None,
-                 on_retry: Callable[[str], None] = lambda _: None, max_tokens: int = 16384) -> Reply:
+                 on_retry: Callable[[str], None] = lambda _: None, max_tokens: int = 32768) -> Reply:
         payload = {"model": MODEL, "messages": messages, "tools": tools,
                    "thinking": {"type": "enabled"}, "reasoning_effort": "high",
                    "max_tokens": max_tokens, "stream": True, "stream_options": {"include_usage": True}}
@@ -138,7 +138,7 @@ class DeepSeekClient:
         if not done or finish is None:
             raise APIError("DeepSeek's stream ended early. No partial tool calls were executed.")
         if finish == "length":
-            raise APIError("The response hit its token limit. No partial tool calls were executed. Try a smaller project scope.")
+            raise APIError("The response hit its per-request token limit. No partial tool calls were executed; the agent can retry with a smaller file batch.")
         if finish not in {"stop", "tool_calls"}:
             raise APIError(f"DeepSeek stopped unexpectedly ({finish}).")
         tool_calls = [calls[k] for k in sorted(calls)]

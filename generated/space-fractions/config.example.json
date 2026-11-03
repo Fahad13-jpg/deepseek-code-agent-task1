@@ -1,0 +1,10 @@
+{
+  "question_count": 10,
+  "starting_lives": 3,
+  "seconds_per_question": 30,
+  "base_points": 10,
+  "difficulty_bonus": 5,
+  "streak_bonus": 2,
+  "max_streak_bonus": 5,
+  "feedback_delay_ms": 1700
+}

@@ -3,7 +3,7 @@ import threading
 from pathlib import Path
 
 from codeagent.agent import Agent, RunConfig
-from codeagent.client import Reply
+from codeagent.client import APIError, Reply
 from codeagent.selftest import FixtureClient
 from codeagent.workspace import Workspace, new_project
 
@@ -64,6 +64,29 @@ def test_budget_stops_before_another_request(tmp_path):
     result = Agent(EmptyClient(), RunConfig(tmp_path, token_budget=1), {}).run()
     assert result["status"] == "incomplete"
     assert "budget" in result["summary"].lower()
+
+
+def test_oversized_model_response_retries_with_smaller_batch(tmp_path):
+    fixture = FixtureClient()
+
+    class OnceTruncated:
+        api_key = ""
+
+        def __init__(self):
+            self.calls = 0
+
+        def complete(self, *args, **kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                raise APIError("The response hit its per-request token limit. No partial tool calls were executed.")
+            return fixture.complete(*args, **kwargs)
+
+    events = []
+    client = OnceTruncated()
+    result = Agent(client, RunConfig(tmp_path), {}, events.append).run()
+    assert result["status"] == "completed"
+    assert client.calls == 4
+    assert any(event["kind"] == "retry" for event in events)
 
 
 def test_default_never_executes_generated_tests(tmp_path):

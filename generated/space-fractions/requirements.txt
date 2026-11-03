@@ -1,0 +1,4 @@
+# Space Fractions has no third-party runtime dependencies.
+# It requires Python 3.10+ and the standard-library Tkinter GUI package.
+# On Debian/Ubuntu, install Tkinter with:
+#   sudo apt-get install python3-tk
