@@ -186,10 +186,21 @@ class MainWindow(QMainWindow):
         limits.addWidget(QLabel("Max model turns"))
         self.turns = QSpinBox()
         self.turns.setRange(5, 120)
-        self.turns.setValue(50)
+        self.turns.setValue(100)
         self.turns.setAccessibleName("Maximum model turns")
         limits.addWidget(self.turns)
         side.addLayout(limits)
+        budget_row = QHBoxLayout()
+        budget_row.addWidget(QLabel("Token budget"))
+        self.token_budget = QSpinBox()
+        self.token_budget.setRange(100_000, 2_000_000)
+        self.token_budget.setSingleStep(100_000)
+        self.token_budget.setValue(int(self.preferences.get("token_budget", 1_000_000)))
+        self.token_budget.setSuffix(" tokens")
+        self.token_budget.setAccessibleName("Accumulated token budget")
+        self.token_budget.setToolTip("Maximum reported API tokens for this run. This is not a dollar spending cap; DeepSeek balance and current prices still apply.")
+        budget_row.addWidget(self.token_budget)
+        side.addLayout(budget_row)
         self.execute = QCheckBox("Allow generated Python tests to run")
         self.execute.setToolTip("Runs generated Python code with your Windows user permissions. Not a sandbox. Optional, off by default.")
         side.addWidget(self.execute)
@@ -279,6 +290,7 @@ class MainWindow(QMainWindow):
             saved = self.preferences.get(setting)
             entry.setText(str(resource_root() / "examples" / filename) if not saved or saved == "@example" else saved)
         self.destination.setText(self.preferences.get("output", str(Path.home() / "Documents" / "DeepSeek Projects")))
+        self.turns.setValue(int(self.preferences.get("max_turns", 100)))
         self.review_inputs(switch=False)
 
     def path_row(self, layout, label, key, directory):
@@ -354,7 +366,9 @@ class MainWindow(QMainWindow):
             def selected(entry):
                 path = Path(entry.text())
                 return "@example" if path.is_file() and path.resolve().is_relative_to(resource_root() / "examples") else entry.text()
-            save_settings({"architecture": selected(self.arch), "views": selected(self.views), "output": self.destination.text()}, self.key.text().strip(), self.remember.isChecked())
+            save_settings({"architecture": selected(self.arch), "views": selected(self.views),
+                           "output": self.destination.text(), "max_turns": self.turns.value(),
+                           "token_budget": self.token_budget.value()}, self.key.text().strip(), self.remember.isChecked())
 
     def verify_connection(self):
         if self.worker:
@@ -388,7 +402,8 @@ class MainWindow(QMainWindow):
             self.status.setText(f"Could not save preferences: {exc}")
             return
         config = RunConfig(Path(self.destination.text()), self.project_name.text().strip(),
-                           self.instructions.toPlainText(), self.turns.value(), execute_tests=self.execute.isChecked())
+                           self.instructions.toPlainText(), self.turns.value(),
+                           token_budget=self.token_budget.value(), execute_tests=self.execute.isChecked())
         self.activity.clear()
         self.report.clear()
         self.file_tree.clear()
@@ -413,7 +428,8 @@ class MainWindow(QMainWindow):
 
     def set_busy(self, busy):
         for item in [self.start, self.review, self.verify, self.key, self.remember, self.execute,
-                     self.project_name, self.instructions, self.turns, self.destination, *self.input_controls]:
+                     self.project_name, self.instructions, self.turns, self.token_budget,
+                     self.destination, *self.input_controls]:
             item.setEnabled(not busy)
         self.stop.setEnabled(busy)
         self.progress.setRange(0, 0 if busy else 1)
@@ -573,8 +589,8 @@ class MainWindow(QMainWindow):
             "After generation, Run generated game can start a root Windows executable, a conventional Python entry point, or an HTML game; generated projects with other launch steps should be started using their README. "
             "Optional Python unittest execution uses the bundled runtime and runs with your user permissions. "
             "Other languages require their own runtime to run the generated project.\n\n"
-            "Limits: 500,000 accumulated tokens (checked between calls), 300 files, 256 KB per file, "
-            "12 MB per project. Stop preserves partial output; API cancellation may take up to 60 seconds.\n\n"
+            "Limits: configurable 100,000–2,000,000 accumulated tokens and 5–120 model turns, 2,000,000 conversation characters, 300 files, 256 KB per file, "
+            "12 MB per project. The token count is not a dollar spending cap. Stop preserves partial output; API cancellation may take up to 60 seconds.\n\n"
             "See README.md and docs/REFERENCE_RESEARCH.md in the source package for implementation and research notes.")
 
     def closeEvent(self, event):
