@@ -8,7 +8,8 @@ A native Windows desktop application that turns architectural documentation and 
 2. Paste your DeepSeek API key. **Test connection** checks authentication and whether `deepseek-v4-pro` is listed for your account.
 3. Use the supplied examples, or browse to your architecture and UML Markdown files. Click **Review inputs** to inspect the structured JSON and document inconsistencies.
 4. Select an output folder and a project name. Add any preferences, such as the required technology stack, in **Additional instructions**.
-5. Click **Generate project**. Follow the Activity tab. Inspect Project files and Report when it finishes, then use **Open output folder**.
+5. For the Space Fractions demo, put this in **Additional instructions**: `Implement the game as a native desktop application with a graphical interface. Do not make a web app. Create a runnable main.py entry point and explain any required dependencies in README.md.`
+6. Click **Generate project**. Follow the Activity tab. Inspect Project files and Report when it finishes, then click **Run generated game**. The launcher recognizes a root Windows executable, `main.py`/`game.py`/`app.py`, `index.html`/`game.html`, or a package with an npm `start`/`dev` script. Python and Node projects need those runtimes installed on the computer.
 
 Windows x64 is the target. The executable was tested on Windows 11 x64. It is an unsigned local build, not an installer. The first launch may take several seconds while the bundled runtime is extracted to a temporary directory. Keep the supplied notices and source package with the executable when redistributing it.
 

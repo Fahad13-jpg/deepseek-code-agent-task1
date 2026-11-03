@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
+import subprocess
 import sys
 import threading
 from pathlib import Path
@@ -257,6 +260,10 @@ class MainWindow(QMainWindow):
         self.open_folder.setEnabled(False)
         self.open_folder.clicked.connect(self.open_output)
         actions.addWidget(self.open_folder)
+        self.run_game = QPushButton("Run generated game")
+        self.run_game.setEnabled(False)
+        self.run_game.clicked.connect(self.run_generated_game)
+        actions.addWidget(self.run_game)
         actions.addStretch()
         self.stop = QPushButton("Stop", objectName="stop")
         self.stop.setEnabled(False)
@@ -388,6 +395,7 @@ class MainWindow(QMainWindow):
         self.file_preview.clear()
         self.project_root = None
         self.open_folder.setEnabled(False)
+        self.run_game.setEnabled(False)
         self.stream_active = False
         self.turn_metric.setText("0")
         self.files_metric.setText("0")
@@ -467,6 +475,7 @@ class MainWindow(QMainWindow):
         self.report.setPlainText(json.dumps(result, indent=2, ensure_ascii=False))
         self.activity.appendPlainText("\n" + status.upper() + "\n" + result.get("summary", ""))
         self.refresh_files()
+        self.run_game.setEnabled(status == "completed" and self.project_root is not None)
 
     def worker_finished(self):
         worker = self.worker
@@ -500,6 +509,58 @@ class MainWindow(QMainWindow):
         if self.project_root:
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.project_root)))
 
+    def run_generated_game(self):
+        """Launch a common project entry point after an explicit user click."""
+        root = self.project_root
+        if not root or not root.is_dir():
+            QMessageBox.information(self, "Run generated game", "Generate a project first.")
+            return
+        try:
+            files = {p.relative_to(root).as_posix().lower(): p for p in root.rglob("*") if p.is_file()}
+            # Prefer a native Windows build, then conventional desktop Python entry points.
+            executable = next((p for rel, p in files.items()
+                               if "/" not in rel and p.suffix.lower() == ".exe"), None)
+            if executable:
+                if os.name == "nt":
+                    os.startfile(str(executable))
+                else:
+                    subprocess.Popen([str(executable)], cwd=root)
+                self.status.setText(f"Started {executable.name}.")
+                return
+
+            python_file = next((files[name] for name in ("main.py", "game.py", "app.py") if name in files), None)
+            if python_file:
+                python = shutil.which("python") or shutil.which("python3")
+                if not python:
+                    raise RuntimeError("Python was not found. Install Python, then run the project using its README instructions.")
+                subprocess.Popen([python, str(python_file)], cwd=root,
+                                 creationflags=getattr(subprocess, "CREATE_NEW_CONSOLE", 0))
+                self.status.setText(f"Started {python_file.name} with the system Python runtime.")
+                return
+
+            html_file = next((files[name] for name in ("index.html", "game.html") if name in files), None)
+            if html_file:
+                if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(html_file))):
+                    raise RuntimeError("Windows could not open the game in your default browser.")
+                self.status.setText("Opened the generated HTML game in your default browser.")
+                return
+
+            package = files.get("package.json")
+            if package:
+                details = json.loads(package.read_text(encoding="utf-8"))
+                scripts = details.get("scripts", {})
+                script = "start" if "start" in scripts else "dev" if "dev" in scripts else None
+                npm = shutil.which("npm")
+                if script and npm:
+                    subprocess.Popen([npm, "run", script], cwd=root,
+                                     creationflags=getattr(subprocess, "CREATE_NEW_CONSOLE", 0))
+                    self.status.setText(f"Started the project with npm run {script}. Follow the project README if it needs a browser URL.")
+                    return
+            raise RuntimeError("I couldn't identify a runnable game entry point. Open the output folder and follow the generated README instructions.")
+        except (OSError, ValueError, json.JSONDecodeError, RuntimeError) as exc:
+            QMessageBox.warning(self, "Could not run generated game", str(exc))
+            self.status.setText(f"Could not start the generated game: {exc}")
+
     def guide(self):
         QMessageBox.information(self, "DeepSeek Code Agent guide", f"DeepSeek Code Agent {__version__}\n\n"
             "1. Configure your official DeepSeek API key and test the connection.\n"
@@ -509,6 +570,7 @@ class MainWindow(QMainWindow):
             "The official deepseek-v4-pro API is the only model used. Generation incurs API charges. "
             "Documents are sent to DeepSeek. The key stays in memory unless you choose encrypted Windows storage.\n\n"
             "Generated source is written into a new project folder. Supported static checks run automatically. "
+            "After generation, Run generated game can start a root Windows executable, a conventional Python entry point, or an HTML game; generated projects with other launch steps should be started using their README. "
             "Optional Python unittest execution uses the bundled runtime and runs with your user permissions. "
             "Other languages require their own runtime to run the generated project.\n\n"
             "Limits: 500,000 accumulated tokens (checked between calls), 300 files, 256 KB per file, "
